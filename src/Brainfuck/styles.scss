@@ -4,6 +4,7 @@
     box-sizing: border-box;
     padding: 4px;
     margin: 0;
+    text-underline-offset: 0.15em;
   }
   .flex {
     display: flex;
@@ -79,10 +80,36 @@
             justify-content: flex-start;
             align-items: flex-start;
             overflow: scroll;
-            line-height: 0.8em;
+            line-height: 0.7em;
             span.current {
               text-decoration: underline;
             }
+          }
+        }
+
+        .ascii-cont {
+          flex: 7;
+          height: 100%;
+          overflow: scroll;
+          line-height: 1.1em;
+
+          display: flex;
+          flex-direction: column;
+          justify-items: stretch;
+          align-items: stretch;
+
+          .ascii {
+            flex: 0;
+          }
+
+          .others {
+            flex: 1;
+            height: 100%;
+            overflow: scroll;
+          }
+
+          .error {
+            color: #cc3311;
           }
         }
 

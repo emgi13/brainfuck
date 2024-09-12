@@ -26,4 +26,5 @@ declare type BrainfuckState = {
   memMax: number;
   outputs: Output[];
   isDone: booelan;
+  isAscii: boolean;
 };

@@ -15,12 +15,14 @@ const valid_tokens = [">", "<", "+", "-", ".", ",", "[", "]"];
 
 const MAX_VALUE = Math.pow(2, 7);
 
+const default_prog =
+  "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.";
+
 class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
   componentRef: React.RefObject<HTMLDivElement>;
   titleRef: React.RefObject<HTMLDivElement>;
   static defaultProps: BrainfuckProps = {
-    program:
-      "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
+    program: default_prog,
     maxMem: 4096,
   };
   player: number | null;
@@ -43,6 +45,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       memMax: 30,
       outputs: [],
       isDone: false,
+      isAscii: false,
     };
     this.player = null;
   }
@@ -187,7 +190,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
     }
     return (
       <div
-        title={`${value}`}
+        title={`${value} (${String.fromCharCode(value)})`}
         key={index}
         className={"memdata " + (index === memPointer ? "current" : "")}
       >
@@ -243,6 +246,26 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
     return this.state.isDone;
   }
 
+  makeAscii() {
+    const { outputs } = this.state;
+    const str = outputs
+      .filter((v) => v.type === "output")
+      .map((v) => String.fromCharCode(v.value))
+      .join("");
+    const others = outputs
+      .filter((v) => v.type !== "output")
+      .map(this.toOutput);
+
+    return (
+      <>
+        <div className="ascii">{str}</div>
+        <div className={"others " + (others.length > 0 ? "border" : "")}>
+          {others}
+        </div>
+      </>
+    );
+  }
+
   render() {
     const { state } = this;
     const divs = [];
@@ -274,7 +297,10 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
                 </button>
               </div>
               <div className="modes flex column ">
-                <button title="Toggle ASCII">
+                <button
+                  title="Toggle ASCII"
+                  onClick={() => this.setState({ isAscii: !state.isAscii })}
+                >
                   <FontDownload />
                 </button>
                 <button title="Edit program">
@@ -288,7 +314,6 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
               </div>
               <div className="program border ">
                 <div className="progscroll">
-                  {" "}
                   {state.tokens.map((t, i) => (
                     <span
                       key={i}
@@ -303,9 +328,13 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
                   ))}
                 </div>
               </div>
-              <div className="output border">
-                <div className="outscroll flex column">{outputDivs}</div>
-              </div>
+              {state.isAscii ? (
+                <div className="ascii-cont border">{this.makeAscii()}</div>
+              ) : (
+                <div className="output border">
+                  <div className="outscroll flex column">{outputDivs}</div>
+                </div>
+              )}
             </div>
             <div className="memory border">
               <div className="memscroll flex column">{divs}</div>
@@ -318,18 +347,25 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
   }
 
   componentDidUpdate() // prevProps: Readonly<BrainfuckProps>,
-  // prevState: Readonly<BrainfuckState>,
-  // snapshot?: any,
-  : void {
+    // prevState: Readonly<BrainfuckState>,
+    // snapshot?: any,
+    : void {
     const component = this.componentRef.current!;
     scrollToElement(
       component.querySelector(".memory")!,
       component.querySelector(".memdata.current")!,
     );
-    scrollToElement(
-      component.querySelector(".output")!,
-      component.querySelector(".outdata.current")!,
-    );
+    if (this.state.isAscii) {
+      scrollToElement(
+        component.querySelector(".others")!,
+        component.querySelector(".outdata.current")!,
+      );
+    } else {
+      scrollToElement(
+        component.querySelector(".output")!,
+        component.querySelector(".outdata.current")!,
+      );
+    }
     scrollToElement(
       component.querySelector(".program")!,
       component.querySelector(".progdata.current")!,
