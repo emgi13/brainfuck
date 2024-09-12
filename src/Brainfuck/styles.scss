@@ -55,19 +55,31 @@
 
         .program {
           flex: 8;
+          height: 100%;
+          overflow: scroll;
+          span.current {
+            text-decoration: underline;
+          }
         }
 
         .output {
           flex: 7;
+          height: 100%;
+          overflow: scroll;
+          line-height: 1;
         }
       }
       .memory {
+        line-height: 1em;
         hr {
           border: none;
           margin: 0;
           padding: 0;
           height: 1px;
           background: #ffffff77;
+        }
+        .memdata.current {
+          text-decoration: underline;
         }
         flex: 3;
         height: 100%;

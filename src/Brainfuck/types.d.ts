@@ -2,6 +2,20 @@ declare interface BrainfuckProps {
   program: string;
 }
 
+declare type Output =
+  | {
+    type: "input";
+    value: number;
+  }
+  | {
+    type: "output";
+    value: number;
+  }
+  | {
+    type: "error";
+    value: string;
+  };
+
 declare type BrainfuckState = {
   tokens: string[];
   memory: Int8Array;
@@ -9,4 +23,5 @@ declare type BrainfuckState = {
   memPointer: number;
   memMin: number;
   memMax: number;
+  outputs: Output[];
 };
