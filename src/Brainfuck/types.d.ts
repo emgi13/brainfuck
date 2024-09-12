@@ -5,17 +5,17 @@ declare interface BrainfuckProps {
 
 declare type Output =
   | {
-    type: "input";
-    value: number;
-  }
+      type: "input";
+      value: number;
+    }
   | {
-    type: "output";
-    value: number;
-  }
+      type: "output";
+      value: number;
+    }
   | {
-    type: "error";
-    value: string;
-  };
+      type: "error";
+      value: string;
+    };
 
 declare type BrainfuckState = {
   tokens: string[];

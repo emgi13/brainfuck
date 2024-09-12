@@ -1,8 +1,9 @@
-import React, { ReactElement } from "react";
+import React from "react";
 import "./fonts/fonts.css";
 import "./styles.scss";
 import {
   Edit,
+  FastForward,
   FontDownload,
   Pause,
   PlayArrow,
@@ -22,6 +23,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
     maxMem: 4096,
   };
+  player: number | null;
   constructor(props: BrainfuckProps) {
     super(props);
 
@@ -42,9 +44,11 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       outputs: [],
       isDone: false,
     };
+    this.player = null;
   }
 
   step() {
+    // eslint-disable-next-line prefer-const
     let { tokens, memory, progPointer, memPointer, memMax, outputs, isDone } =
       this.state;
     if (isDone) return isDone;
@@ -192,16 +196,53 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
     );
   }
 
-  runAll() {
-    const { isDone } = this.state;
-    const interval = setInterval(() => {
-      if (isDone) {
-        clearInterval(interval);
+  pause() {
+    console.log("pause");
+    if (this.player) clearInterval(this.player);
+  }
+
+  run() {
+    this.pause();
+    console.log("play");
+    this.player = setInterval(() => {
+      if (this.finished()) {
+        this.pause();
         return;
       }
-      this.step(); // Mutate the state
-    }, 10); // Adjust the delay as needed
+      this.step();
+    }, 25);
   }
+
+  ff() {
+    this.pause();
+    console.log("ff");
+    this.player = setInterval(() => {
+      if (this.finished()) {
+        this.pause();
+        return;
+      }
+      this.step();
+    }, 1);
+  }
+
+  reset() {
+    this.pause();
+    console.log("reset");
+    this.setState({
+      progPointer: 0,
+      memPointer: 0,
+      memory: new Int8Array(this.props.maxMem),
+      memMin: 0,
+      memMax: 30,
+      outputs: [],
+      isDone: false,
+    });
+  }
+
+  finished() {
+    return this.state.isDone;
+  }
+
   render() {
     const { state } = this;
     const divs = [];
@@ -216,16 +257,19 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
           <div className="main flex row">
             <div className="buttons flex column border">
               <div className="playback flex column ">
-                <button title="Step">
+                <button title="Step" onClick={() => this.step()}>
                   <SkipNext />
                 </button>
-                <button title="Run">
+                <button title="Run" onClick={() => this.run()}>
                   <PlayArrow />
                 </button>
-                <button title="Pause">
+                <button title="Run (fast)" onClick={() => this.ff()}>
+                  <FastForward />
+                </button>
+                <button title="Pause" onClick={() => this.pause()}>
                   <Pause />
                 </button>
-                <button title="Reset">
+                <button title="Reset" onClick={() => this.reset()}>
                   <Stop />
                 </button>
               </div>
@@ -240,9 +284,9 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
             </div>
             <div className="prog flex column">
               <div ref={this.titleRef} className="title border">
-                <span onClick={() => this.step()}>Brainf*ck</span>
+                <span>Brainf*ck</span>
               </div>
-              <div className="program border " onClick={() => this.runAll()}>
+              <div className="program border ">
                 <div className="progscroll">
                   {" "}
                   {state.tokens.map((t, i) => (
