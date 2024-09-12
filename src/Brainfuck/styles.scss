@@ -1,0 +1,78 @@
+.Brainfuck {
+  color: white;
+  * {
+    box-sizing: border-box;
+    padding: 4px;
+    margin: 0;
+  }
+  .flex {
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 0;
+    gap: 4px;
+
+    &.row {
+      flex-direction: row;
+    }
+
+    &.column {
+      flex-direction: column;
+    }
+
+    &.center {
+      align-items: center;
+    }
+  }
+
+  .container {
+    font-family: "JetbrainsMono", monospace;
+
+    .border {
+      border: 2px solid;
+    }
+
+    .main,
+    .io {
+      width: 90%;
+    }
+
+    .main {
+      aspect-ratio: 1;
+      overflow: hidden;
+
+      .buttons {
+        flex: 1;
+      }
+      .prog {
+        flex: 12;
+
+        .title {
+          flex: 1;
+          font-weight: bold;
+          font-size: 1.4em;
+        }
+
+        .program {
+          flex: 8;
+        }
+
+        .output {
+          flex: 7;
+        }
+      }
+      .memory {
+        hr {
+          border: none;
+          margin: 0;
+          padding: 0;
+          height: 1px;
+          background: #ffffff77;
+        }
+        flex: 3;
+        height: 100%;
+        overflow-y: scroll;
+      }
+    }
+  }
+}

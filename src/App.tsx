@@ -1,8 +1,12 @@
 import "./App.css";
-import "./fonts/fonts.css";
+import Brainfuck from "./Brainfuck";
 
 function App() {
-  return <div id="main">TEST</div>;
+  return (
+    <div id="main">
+      <Brainfuck />
+    </div>
+  );
 }
 
 export default App;
