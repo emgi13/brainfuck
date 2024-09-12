@@ -1,4 +1,10 @@
-#root {
-  font-family: "JetbrainsMono", monospace; /* Fallback to sans-serif */
-  font-weight: bold;
+body {
+  width: 100%;
+  background: black;
+}
+
+#main {
+  color: white;
+  max-width: 720px;
+  margin: auto;
 }
