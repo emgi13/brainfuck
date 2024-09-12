@@ -43,6 +43,23 @@
 
       .buttons {
         flex: 1;
+        justify-content: space-between;
+        > * {
+          gap: 0;
+        }
+        button {
+          border: none;
+          padding: 0;
+          margin: 0;
+          background: none;
+          color: white;
+          width: 100%;
+          aspect-ratio: 1;
+          cursor: pointer;
+        }
+        svg {
+          font-size: 2.5em;
+        }
       }
       .prog {
         flex: 12;
@@ -55,10 +72,17 @@
 
         .program {
           flex: 8;
-          height: 100%;
           overflow: scroll;
-          span.current {
-            text-decoration: underline;
+          .progscroll {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: flex-start;
+            overflow: scroll;
+            line-height: 0.8em;
+            span.current {
+              text-decoration: underline;
+            }
           }
         }
 

@@ -1,6 +1,14 @@
 import React, { ReactElement } from "react";
 import "./fonts/fonts.css";
 import "./styles.scss";
+import {
+  Edit,
+  FontDownload,
+  Pause,
+  PlayArrow,
+  SkipNext,
+  Stop,
+} from "@mui/icons-material";
 
 const valid_tokens = [">", "<", "+", "-", ".", ",", "[", "]"];
 
@@ -206,22 +214,50 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       <div ref={this.componentRef} className="Brainfuck">
         <div className="container flex column center">
           <div className="main flex row">
-            <div className="buttons flex column border"></div>
+            <div className="buttons flex column border">
+              <div className="playback flex column ">
+                <button title="Step">
+                  <SkipNext />
+                </button>
+                <button title="Run">
+                  <PlayArrow />
+                </button>
+                <button title="Pause">
+                  <Pause />
+                </button>
+                <button title="Reset">
+                  <Stop />
+                </button>
+              </div>
+              <div className="modes flex column ">
+                <button title="Toggle ASCII">
+                  <FontDownload />
+                </button>
+                <button title="Edit program">
+                  <Edit />
+                </button>
+              </div>
+            </div>
             <div className="prog flex column">
               <div ref={this.titleRef} className="title border">
                 <span onClick={() => this.step()}>Brainf*ck</span>
               </div>
-              <div className="program border" onClick={() => this.runAll()}>
-                {state.tokens.map((t, i) => (
-                  <span
-                    key={i}
-                    className={
-                      i === state.progPointer ? "progdata current" : "progdata"
-                    }
-                  >
-                    {t}
-                  </span>
-                ))}
+              <div className="program border " onClick={() => this.runAll()}>
+                <div className="progscroll">
+                  {" "}
+                  {state.tokens.map((t, i) => (
+                    <span
+                      key={i}
+                      className={
+                        i === state.progPointer
+                          ? "progdata current"
+                          : "progdata"
+                      }
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
               </div>
               <div className="output border">
                 <div className="outscroll flex column">{outputDivs}</div>
