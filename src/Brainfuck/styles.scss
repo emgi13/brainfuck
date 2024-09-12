@@ -38,6 +38,16 @@
       width: 90%;
     }
 
+    .io {
+      display: flex;
+      flex-direction: row;
+      justify-content: stretch;
+      align-items: stretch;
+      textarea {
+        flex: 1;
+      }
+    }
+
     .main {
       aspect-ratio: 1;
       overflow: hidden;

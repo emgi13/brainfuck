@@ -2,6 +2,7 @@ import React from "react";
 import "./fonts/fonts.css";
 import "./styles.scss";
 import {
+  Done,
   Edit,
   FastForward,
   FontDownload,
@@ -46,15 +47,23 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       outputs: [],
       isDone: false,
       isAscii: false,
+      isEditing: false,
     };
     this.player = null;
   }
 
   step() {
-    // eslint-disable-next-line prefer-const
-    let { tokens, memory, progPointer, memPointer, memMax, outputs, isDone } =
-      this.state;
-    if (isDone) return isDone;
+    let {
+      tokens,
+      memory,
+      progPointer,
+      memPointer,
+      memMax,
+      outputs,
+      isDone,
+      isEditing,
+    } = this.state;
+    if (isDone || isEditing) return isDone;
     const token = tokens[progPointer];
     let count = 1;
     switch (token) {
@@ -206,6 +215,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
 
   run() {
     this.pause();
+    if (this.state.isEditing) return;
     console.log("play");
     this.player = setInterval(() => {
       if (this.finished()) {
@@ -218,6 +228,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
 
   ff() {
     this.pause();
+    if (this.state.isEditing) return;
     console.log("ff");
     this.player = setInterval(() => {
       if (this.finished()) {
@@ -239,6 +250,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       memMax: 30,
       outputs: [],
       isDone: false,
+      isEditing: false,
     });
   }
 
@@ -303,7 +315,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
                 >
                   <FontDownload />
                 </button>
-                <button title="Edit program">
+                <button title="Edit program" onClick={() => this.edit()}>
                   <Edit />
                 </button>
               </div>
@@ -340,16 +352,48 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
               <div className="memscroll flex column">{divs}</div>
             </div>
           </div>
-          <div className="io border">IO</div>
+          {state.isEditing && (
+            <div className="io border">{this.makeEditor()}</div>
+          )}
         </div>
       </div>
     );
   }
 
+  makeEditor() {
+    const { tokens } = this.state;
+    const ta = React.createRef<HTMLTextAreaElement>();
+    return (
+      <>
+        <textarea ref={ta} defaultValue={tokens.join("")}></textarea>
+        <button
+          onClick={() => {
+            this.setState({
+              tokens: ta
+                .current!.value.split("")
+                .filter((v) => valid_tokens.includes(v)),
+              isEditing: false,
+            });
+            this.reset();
+          }}
+        >
+          <Done />
+        </button>
+      </>
+    );
+  }
+
+  edit() {
+    const { isEditing } = this.state;
+    if (!isEditing) {
+      this.setState({ isEditing: true });
+    }
+  }
+
   componentDidUpdate() // prevProps: Readonly<BrainfuckProps>,
-    // prevState: Readonly<BrainfuckState>,
-    // snapshot?: any,
-    : void {
+  // prevState: Readonly<BrainfuckState>,
+  // snapshot?: any,
+  : void {
     const component = this.componentRef.current!;
     scrollToElement(
       component.querySelector(".memory")!,

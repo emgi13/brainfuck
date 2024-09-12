@@ -27,4 +27,5 @@ declare type BrainfuckState = {
   outputs: Output[];
   isDone: booelan;
   isAscii: boolean;
+  isEditing: boolean;
 };
