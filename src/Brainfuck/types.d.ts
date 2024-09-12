@@ -28,4 +28,6 @@ declare type BrainfuckState = {
   isDone: booelan;
   isAscii: boolean;
   isEditing: boolean;
+  isInputing: boolean;
+  afterInput: "play" | "ff" | "pause";
 };

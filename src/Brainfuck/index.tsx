@@ -16,8 +16,7 @@ const valid_tokens = [">", "<", "+", "-", ".", ",", "[", "]"];
 
 const MAX_VALUE = Math.pow(2, 7);
 
-const default_prog =
-  "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.";
+const default_prog = ",.";
 
 class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
   componentRef: React.RefObject<HTMLDivElement>;
@@ -48,6 +47,8 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       isDone: false,
       isAscii: false,
       isEditing: false,
+      isInputing: false,
+      afterInput: "pause",
     };
     this.player = null;
   }
@@ -62,8 +63,9 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       outputs,
       isDone,
       isEditing,
+      isInputing,
     } = this.state;
-    if (isDone || isEditing) return isDone;
+    if (isDone) return isDone;
     const token = tokens[progPointer];
     let count = 1;
     switch (token) {
@@ -94,9 +96,8 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
         this.setState({ outputs, progPointer });
         break;
       case ",":
-        // WARN: Unimplemenmted
-        progPointer += 1;
-        this.setState({ progPointer });
+        this.pause();
+        this.setState({ isInputing: true });
         break;
       case "[":
         if (memory[memPointer] === 0) {
@@ -208,6 +209,11 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
     );
   }
 
+  handlePause() {
+    this.setState({ afterInput: "pause" });
+    this.pause();
+  }
+
   pause() {
     console.log("pause");
     if (this.player) clearInterval(this.player);
@@ -217,6 +223,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
     this.pause();
     if (this.state.isEditing) return;
     console.log("play");
+    this.setState({ afterInput: "play" });
     this.player = setInterval(() => {
       if (this.finished()) {
         this.pause();
@@ -230,6 +237,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
     this.pause();
     if (this.state.isEditing) return;
     console.log("ff");
+    this.setState({ afterInput: "ff" });
     this.player = setInterval(() => {
       if (this.finished()) {
         this.pause();
@@ -251,6 +259,8 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       outputs: [],
       isDone: false,
       isEditing: false,
+      isInputing: false,
+      afterInput: "pause",
     });
   }
 
@@ -301,7 +311,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
                 <button title="Run (fast)" onClick={() => this.ff()}>
                   <FastForward />
                 </button>
-                <button title="Pause" onClick={() => this.pause()}>
+                <button title="Pause" onClick={() => this.handlePause()}>
                   <Pause />
                 </button>
                 <button title="Reset" onClick={() => this.reset()}>
@@ -355,9 +365,58 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
           {state.isEditing && (
             <div className="io border">{this.makeEditor()}</div>
           )}
+          {state.isInputing && (
+            <div className="io border">{this.makeInput()}</div>
+          )}
         </div>
       </div>
     );
+  }
+
+  makeInput() {
+    const t = React.createRef<HTMLInputElement>();
+    return (
+      <>
+        <input ref={t}></input>
+        <div>
+          <button onClick={() => this.handleInput(t.current!.value)}>
+            <Done />
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  handleInput(value: string) {
+    let { outputs, progPointer, memory, memPointer, afterInput } = this.state;
+    let v;
+    try {
+      v = Number(value);
+      if (!Number.isInteger(v)) throw new Error("Not an integer");
+      if (v < 0 || v >= 128) throw new Error("Number not within bounds");
+      outputs.push({ type: "input", value: v });
+      memory[memPointer] = v;
+      progPointer += 1;
+      this.setState({ outputs, progPointer, memory, memPointer, isInputing: false });
+      switch (afterInput) {
+        case "play":
+          this.run();
+          break;
+        case "ff":
+          this.ff();
+          break;
+        case "pause":
+          this.pause();
+          break;
+      }
+    } catch (e) {
+      console.error(e);
+      outputs.push({
+        type: "error",
+        value: "Please enter an integer between 0 and 127",
+      });
+      this.setState({ outputs });
+    }
   }
 
   makeEditor() {
@@ -366,34 +425,39 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
     return (
       <>
         <textarea ref={ta} defaultValue={tokens.join("")}></textarea>
-        <button
-          onClick={() => {
-            this.setState({
-              tokens: ta
-                .current!.value.split("")
-                .filter((v) => valid_tokens.includes(v)),
-              isEditing: false,
-            });
-            this.reset();
-          }}
-        >
-          <Done />
-        </button>
+        <div>
+          <button
+            onClick={() => {
+              this.setState({
+                tokens: ta
+                  .current!.value.split("")
+                  .filter((v) => valid_tokens.includes(v)),
+                isEditing: false,
+              });
+              this.reset();
+            }}
+          >
+            <Done />
+          </button>
+        </div>
       </>
     );
   }
 
   edit() {
+    this.pause();
     const { isEditing } = this.state;
     if (!isEditing) {
       this.setState({ isEditing: true });
+    } else {
+      this.setState({ isEditing: false });
     }
   }
 
   componentDidUpdate() // prevProps: Readonly<BrainfuckProps>,
-  // prevState: Readonly<BrainfuckState>,
-  // snapshot?: any,
-  : void {
+    // prevState: Readonly<BrainfuckState>,
+    // snapshot?: any,
+    : void {
     const component = this.componentRef.current!;
     scrollToElement(
       component.querySelector(".memory")!,
@@ -420,7 +484,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
     const component = this.componentRef.current!;
     const title = this.titleRef.current!;
     const title_height = title.clientHeight!;
-    component.style.fontSize = `${(title_height - 16) / 1.5}px`;
+    component.style.fontSize = `${title_height / 2.4}px`;
   }
 }
 
