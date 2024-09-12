@@ -1,5 +1,6 @@
 declare interface BrainfuckProps {
   program: string;
+  maxMem: number;
 }
 
 declare type Output =
@@ -24,4 +25,5 @@ declare type BrainfuckState = {
   memMin: number;
   memMax: number;
   outputs: Output[];
+  isDone: booelan;
 };

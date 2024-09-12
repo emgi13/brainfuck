@@ -67,6 +67,9 @@
           height: 100%;
           overflow: scroll;
           line-height: 1;
+          .error {
+            color: #cc3311;
+          }
         }
       }
       .memory {

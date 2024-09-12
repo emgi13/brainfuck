@@ -10,7 +10,8 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
   componentRef: React.RefObject<HTMLDivElement>;
   titleRef: React.RefObject<HTMLDivElement>;
   static defaultProps: BrainfuckProps = {
-    program: ">>>>++.<<.+]-.",
+    program:
+      "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
     maxMem: 4096,
   };
   constructor(props: BrainfuckProps) {
@@ -28,24 +29,25 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       tokens,
       memPointer: 0,
       progPointer: 0,
-      isDone: false,
       memMin: 0,
       memMax: 30,
       outputs: [],
+      isDone: false,
     };
   }
 
   step() {
     let { tokens, memory, progPointer, memPointer, memMax, outputs, isDone } =
       this.state;
-    if (isDone) return;
+    if (isDone) return isDone;
     const token = tokens[progPointer];
     let count = 1;
     switch (token) {
       case ">":
         memPointer += 1;
+        if (memPointer >= memMax) memMax = memPointer;
         progPointer += 1;
-        this.setState({ memPointer, progPointer });
+        this.setState({ memPointer, progPointer, memMax });
         break;
       case "<":
         memPointer -= 1;
@@ -82,7 +84,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
               progPointer = init_pointer;
               isDone = true;
               this.setState({ outputs, progPointer, isDone });
-              return;
+              return isDone;
             } else if (tokens[progPointer] === "[") {
               count += 1;
             } else if (tokens[progPointer] === "]") {
@@ -105,7 +107,7 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
               progPointer = init_pointer;
               isDone = true;
               this.setState({ outputs, progPointer, isDone });
-              return;
+              return isDone;
             } else if (tokens[progPointer] === "[") {
               count -= 1;
             } else if (tokens[progPointer] === "]") {
@@ -123,8 +125,9 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       progPointer = tokens.length - 1;
       isDone = true;
     } else if (progPointer < 0 || progPointer > tokens.length) {
+      isDone = true;
       throw new Error(
-        "Brainfuck: invalid state of programPointer:" + progPointer,
+        "Brainfuck: Invalid state of programPointer:" + progPointer,
       );
     }
     if (memPointer === memory.length) {
@@ -133,17 +136,28 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       memPointer = 0;
     }
     this.setState({ memPointer, progPointer, isDone });
+    return isDone;
   }
 
-  toOutput(data: Output, ind: number) {
+  toOutput(data: Output, ind: number, arr: Output[]) {
+    let cl = "outdata ";
+    if (ind === arr.length - 1) cl += "current ";
     switch (data.type) {
       case "input":
-        return <div key={ind}>$ {data.value}</div>;
+        return (
+          <div className={cl} key={ind}>
+            $ {data.value}
+          </div>
+        );
       case "output":
-        return <div key={ind}>: {data.value}</div>;
+        return (
+          <div className={cl} key={ind}>
+            : {data.value}
+          </div>
+        );
       case "error":
         return (
-          <div key={ind} className="error">
+          <div className={cl + "error"} key={ind}>
             ! {data.value}
           </div>
         );
@@ -171,12 +185,14 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
   }
 
   runAll() {
-    let { isDone } = this.state;
-    while (!isDone) {
-      console.log("step");
-      this.step();
-      isDone = this.state.isDone;
-    }
+    const { isDone } = this.state;
+    const interval = setInterval(() => {
+      if (isDone) {
+        clearInterval(interval);
+        return;
+      }
+      this.step(); // Mutate the state
+    }, 10); // Adjust the delay as needed
   }
   render() {
     const { state } = this;
@@ -185,25 +201,23 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
       divs.push(this.toBinary(state.memory[i], i));
       if (i % 8 === 7) divs.push(<hr key={`hr${i}`} />);
     }
-    const outputDivs = state.outputs.map((v, i) => this.toOutput(v, i));
+    const outputDivs = state.outputs.map(this.toOutput);
     return (
       <div ref={this.componentRef} className="Brainfuck">
         <div className="container flex column center">
           <div className="main flex row">
-            <div className="buttons flex column center"></div>
+            <div className="buttons flex column border"></div>
             <div className="prog flex column">
-              <div
-                ref={this.titleRef}
-                className="title border"
-                onClick={() => this.runAll()}
-              >
+              <div ref={this.titleRef} className="title border">
                 <span onClick={() => this.step()}>Brainf*ck</span>
               </div>
-              <div className="program border">
+              <div className="program border" onClick={() => this.runAll()}>
                 {state.tokens.map((t, i) => (
                   <span
                     key={i}
-                    className={i === state.progPointer ? "current" : ""}
+                    className={
+                      i === state.progPointer ? "progdata current" : "progdata"
+                    }
                   >
                     {t}
                   </span>
@@ -223,11 +237,41 @@ class Brainfuck extends React.Component<BrainfuckProps, BrainfuckState> {
     );
   }
 
+  componentDidUpdate() // prevProps: Readonly<BrainfuckProps>,
+  // prevState: Readonly<BrainfuckState>,
+  // snapshot?: any,
+  : void {
+    const component = this.componentRef.current!;
+    scrollToElement(
+      component.querySelector(".memory")!,
+      component.querySelector(".memdata.current")!,
+    );
+    scrollToElement(
+      component.querySelector(".output")!,
+      component.querySelector(".outdata.current")!,
+    );
+    scrollToElement(
+      component.querySelector(".program")!,
+      component.querySelector(".progdata.current")!,
+    );
+  }
+
   componentDidMount(): void {
     const component = this.componentRef.current!;
     const title = this.titleRef.current!;
     const title_height = title.clientHeight!;
     component.style.fontSize = `${(title_height - 16) / 1.5}px`;
+  }
+}
+
+function scrollToElement(container: HTMLElement, element: HTMLElement) {
+  if (!element) return;
+  const containerRect = container.getBoundingClientRect();
+  const elementRect = element.getBoundingClientRect();
+  if (elementRect.top < containerRect.top) {
+    container.scrollTop = element.offsetTop - container.offsetTop;
+  } else if (elementRect.bottom > containerRect.bottom) {
+    container.scrollTop = element.offsetTop - container.offsetTop;
   }
 }
 
