@@ -1,8 +1,8 @@
-import { useState } from "react";
 import "./App.css";
+import "./fonts/fonts.css";
 
 function App() {
-  return <></>;
+  return <>Hello World</>;
 }
 
 export default App;
